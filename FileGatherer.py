@@ -22,17 +22,27 @@ def getNextUrl(url):
     nextUrlResp.close()
     soup = BeautifulSoup(nextUrlResp.text, "html.parser")
     soup.encode("utf-8")
-    next = soup.find("link", {"rel" : "next"})
+    next = soup.find("link", {"rel": "next"})
     if next is None:
         return "End"
     return next['href']
 
+
 def getAllUrls(ticker):
-    urls = []
+    urlsInit = []
 
     first = getFirstUrl(ticker)
-    urls.append(first)
-    # while
+    urlsInit.append(first)
+    return getRestUrls(urlsInit, first)
+
+
+def getRestUrls(urlsOld, url):
+    nextUrl = getNextUrl(url)
+    if nextUrl != "End":
+        urlsOld.append(nextUrl)
+        return getRestUrls(urlsOld, nextUrl)
+    else:
+        return urlsOld
 
 
 # Collects files and stores them in a DataStorage object
@@ -45,13 +55,21 @@ class FileGatherer:
         self.tickers = tickers
         self.data = self.gather_data(self.tickers)
 
+    def get_data(self):
+        return self.data
+
     def gather_data(self, tickers):
         urls = []
         for ticker in tickers:
-            pass
+            urls = getAllUrls(ticker)
+            for url in urls:
+                page = requests.get(url)
+                page.close()
+                soup = BeautifulSoup(page.content, "xml")
+                entries = soup.findAll("entry")
+                print(entries[0])
 
 
-first = getFirstUrl("TSLA")
-next = getNextUrl(first)
-print(first)
-print(next)
+
+first = getAllUrls("TSLA")
+FileGatherer(["TSLA"])

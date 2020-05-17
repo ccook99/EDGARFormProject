@@ -19,6 +19,6 @@ class DataConversion:
 
 fileUrl = "https://www.sec.gov/Archives/edgar/data/1182464/000120919120025998/0001209191-20-025998.txt"
 
-file = FileParser(fileUrl).get_data()
+file = FileParser(fileUrl, "hello").get_data()
 
 print(DataConversion(file).get_converted().to_string())

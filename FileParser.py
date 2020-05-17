@@ -8,14 +8,18 @@ def convert_tag_to_string(tag):
 
 class FileParser:
 
-    def __init__(self, url):
+    def __init__(self, url, accession_number):
+        self.an = accession_number
         self.doc = self.get_ownership_doc_from_url(url)
         self.data = self.fill_data()
 
+
     def get_ownership_doc_from_url(self, url):
         page = requests.get(url)
+        page.close()
         soup = BeautifulSoup(page.content, "xml")
         ownershipdoc = soup.find("ownershipDocument")
+
         return ownershipdoc
 
     def get_doc(self):
@@ -45,7 +49,8 @@ class FileParser:
         counter = 0
 
         for transaction in self.get_ndts():
-            t = {"issuername": convert_tag_to_string(self.get_issuername()),
+            t = {"accessionnumber": self.an,
+                 "issuername": convert_tag_to_string(self.get_issuername()),
                  "issuercik": convert_tag_to_string(self.get_issuercik()),
                  "ticker": convert_tag_to_string(self.get_ticker()),
                  "filingdate": convert_tag_to_string(self.get_filingdate()),
@@ -168,5 +173,4 @@ class FileParser:
         return len(self.get_ndts())
 
 
-print(FileParser("https://www.sec.gov/Archives/edgar/data/1182464/000120919120025998/0001209191-20-025998.txt")
-      .get_data())
+#print(FileParser("https://www.sec.gov/Archives/edgar/data/1182464/000120919120025998/0001209191-20-025998.txt").get_data())
