@@ -1,6 +1,7 @@
 import requests
 from urllib import parse
 from bs4 import BeautifulSoup
+import xmltodict
 
 
 def getFirstUrl(ticker):
@@ -55,6 +56,7 @@ class FileGatherer:
         self.tickers = tickers
         self.data = self.gather_data(self.tickers)
         self.txts = self.convert_htm_txt(self.data)
+        self.dicts = self.convert_txt_dicts(self.txts)
 
     def get_data(self):
         return self.data
@@ -78,5 +80,22 @@ class FileGatherer:
             txts.append(htm.replace("-index.htm", ".txt"))
         return txts
 
+    def convert_txt_dicts(self, txts):
+        dicts = []
+        tot = len(txts)
+        i = 0
+        for txt in txts:
+            if i % 10 == 0:
+                print(f"{i}/{tot} completed so far")
+            i = i + 1
+            resp = requests.get(txt)
+            resp.close()
+            soup = BeautifulSoup(resp.text, "lxml")
+            #soup.encode("utf-8")
+            od = soup.find("ownershipdocument")
+            #print(od.prettify())
+            d = xmltodict.parse(od.prettify())
+            dicts.append(d)
+        return dicts
 
-print(FileGatherer(["TSLA"]).txts)
+print(FileGatherer(["TSLA"]).dicts)
