@@ -54,12 +54,13 @@ class FileGatherer:
     def __init__(self, tickers):
         self.tickers = tickers
         self.data = self.gather_data(self.tickers)
+        self.txts = self.convert_htm_txt(self.data)
 
     def get_data(self):
         return self.data
 
     def gather_data(self, tickers):
-        urls = []
+        htms = []
         for ticker in tickers:
             urls = getAllUrls(ticker)
             for url in urls:
@@ -67,9 +68,15 @@ class FileGatherer:
                 page.close()
                 soup = BeautifulSoup(page.content, "xml")
                 entries = soup.findAll("entry")
-                print(entries[0])
+                for entry in entries:
+                    htms.append(entry.find("filing-href").string)
+        return htms
+
+    def convert_htm_txt(self, htms):
+        txts = []
+        for htm in htms:
+            txts.append(htm.replace("-index.htm", ".txt"))
+        return txts
 
 
-
-first = getAllUrls("TSLA")
-FileGatherer(["TSLA"])
+print(FileGatherer(["TSLA"]).txts)
