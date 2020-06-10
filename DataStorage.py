@@ -7,3 +7,8 @@ class DataStorage:
         self.db = self.client.EDGARProject
         self.collection = self.db.Filings
 
+    def insert(self, dict):
+        self.collection.insert(dict)
+
+    def clear(self):
+        self.collection.drop()
