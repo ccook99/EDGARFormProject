@@ -2,20 +2,21 @@ from FileGatherer import FileGatherer
 from DataStorage import DataStorage
 import pandas as pd
 
-ticker_csv = pd.read_csv("constituents_csv.csv")["Symbol"]
-tickers = []
-for ticker in ticker_csv:
-    tickers.append(ticker)
+# ticker_csv = pd.read_csv("constituents_csv.csv")["Symbol"]
+# tickers = []
+# for ticker in ticker_csv:
+#     tickers.append(ticker)
+#
+# tickers = tickers[4:10]
+#
+# storage = DataStorage()
+#
+# for ticker in tickers:
+#     dicts = FileGatherer([ticker]).get_dicts()
+#     for dict in dicts:
+#         storage.insert(dict)
 
-tickers = tickers[:2]
+f = FileGatherer(["ABMD"]).get_txts()
 
-dicts = FileGatherer(tickers).get_dicts()
-
-storage = DataStorage()
-
-storage.clear()
-
-for dict in dicts:
-    storage.insert(dict)
-
-# none is [1703]
+for i, fs in enumerate(f):
+    print(f"{i}: {fs}")

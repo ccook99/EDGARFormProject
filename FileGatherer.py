@@ -7,6 +7,7 @@ from ratelimit import limits, sleep_and_retry
 
 nones = []
 
+
 def getFirstUrl(ticker):
     params = {'ticker': ticker,
               'owner': 'only',
@@ -19,34 +20,6 @@ def getFirstUrl(ticker):
     qs = parse.urlencode(params)
     url = "https://www.sec.gov/cgi-bin/browse-edgar" + "?" + qs
     return url
-
-
-def getNextUrl(url):
-    nextUrlResp = requests.get(url, timeout=5)
-    nextUrlResp.close()
-    soup = BeautifulSoup(nextUrlResp.text, "html.parser")
-    soup.encode("utf-8")
-    next = soup.find("link", {"rel": "next"})
-    if next is None:
-        return "End"
-    return next['href']
-
-
-def getAllUrls(ticker):
-    urlsInit = []
-
-    first = getFirstUrl(ticker)
-    urlsInit.append(first)
-    return getRestUrls(urlsInit, first)
-
-
-def getRestUrls(urlsOld, url):
-    nextUrl = getNextUrl(url)
-    if nextUrl != "End":
-        urlsOld.append(nextUrl)
-        return getRestUrls(urlsOld, nextUrl)
-    else:
-        return urlsOld
 
 
 # Collects files and stores them in a DataStorage object
@@ -68,28 +41,30 @@ class FileGatherer:
     def get_dicts(self):
         return self.dicts
 
+    def get_txts(self):
+        return self.txts
+
     def gather_data(self, tickers):
         htms = []
-        for ticker in tickers:
-            urls = getAllUrls(ticker)
-            for url in urls:
+        ticker_len = len(tickers)
+        for ticker_index, ticker in enumerate(tickers):
+            urls = self.getAllUrls(ticker)
+            url_len = len(urls)
+            for url_index, url in enumerate(urls):
+                print(f"ticker ({ticker}): {ticker_index+1}/{ticker_len} --- rss feed: {url_index+1}/{url_len}")
                 page = self.access_api(url)
                 soup = BeautifulSoup(page.content, "xml")
                 entries = soup.findAll("entry")
                 for entry in entries:
-                    htms.append(entry.find("filing-href").string)
+                    if int(entry.find("filing-date").string[:4]) >= 2010:
+                        htms.append(entry.find("filing-href").string)
         return htms
 
     def convert_txt_dicts(self, txts):
         dicts = []
-        tot = len(txts)
-
-        for txt in txts:
-            print(txt)
-        i = 0
-        for txt in txts:
-            print(f"{i}/{tot} completed so far")
-            i = i + 1
+        txts_len = len(txts)
+        for txt_index, txt in enumerate(txts):
+            print(f"dict: {txt_index+1}/{txts_len}")
             resp = self.access_api(txt)
             soup = BeautifulSoup(resp.text, "lxml")
             # soup.encode("utf-8")
@@ -99,9 +74,33 @@ class FileGatherer:
                 d = xmltodict.parse(od.prettify())
                 dicts.append(d)
             else:
-                nones.append(i-1)
+                nones.append(txt_index)
         print(nones)
         return dicts
+
+    def getAllUrls(self, ticker):
+        urlsInit = []
+
+        first = getFirstUrl(ticker)
+        urlsInit.append(first)
+        return self.getRestUrls(urlsInit, first)
+
+    def getNextUrl(self, url):
+        nextUrlResp = self.access_api(url)
+        soup = BeautifulSoup(nextUrlResp.text, "html.parser")
+        soup.encode("utf-8")
+        next = soup.find("link", {"rel": "next"})
+        if next is None:
+            return "End"
+        return next['href']
+
+    def getRestUrls(self, urlsOld, url):
+        nextUrl = self.getNextUrl(url)
+        if nextUrl != "End":
+            urlsOld.append(nextUrl)
+            return self.getRestUrls(urlsOld, nextUrl)
+        else:
+            return urlsOld
 
     @sleep_and_retry
     @limits(calls=10, period=1)
