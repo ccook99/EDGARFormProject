@@ -22,7 +22,6 @@ def getFirstUrl(ticker):
     return url
 
 
-# Collects files and stores them in a DataStorage object
 def convert_htm_txt(htms):
     txts = []
     for htm in htms:
@@ -34,15 +33,35 @@ class FileGatherer:
 
     def __init__(self, tickers):
         self.tickers = tickers
+        self.data = None
+        self.txts = None
+        self.dicts = None
+        self.nones = {}
+
+    def load_data(self):
         self.data = self.gather_data(self.tickers)
+
+    def load_txts(self):
+        if self.data is None:
+            self.load_data()
         self.txts = convert_htm_txt(self.data)
+
+    def load_dicts(self):
+        if self.txts is None:
+            self.load_txts()
         self.dicts = self.convert_txt_dicts(self.txts)
+
+    def get_data(self):
+        return self.data
 
     def get_dicts(self):
         return self.dicts
 
     def get_txts(self):
         return self.txts
+
+    def get_nones(self):
+        return self.nones
 
     def gather_data(self, tickers):
         htms = []
@@ -74,7 +93,13 @@ class FileGatherer:
                 d = xmltodict.parse(od.prettify())
                 dicts.append(d)
             else:
-                nones.append(txt_index)
+                od2 = soup.find("ownershipdocument")
+                if od2 is not None:
+                    d = xmltodict.parse(od2.prettify())
+                    dicts.append(d)
+                else:
+                    self.nones[soup.find("issuerTradingSymbol").string].append(txt_index)
+                    nones.append(txt_index)
         print(nones)
         return dicts
 
