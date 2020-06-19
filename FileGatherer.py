@@ -4,8 +4,6 @@ from bs4 import BeautifulSoup
 import xmltodict
 from ratelimit import limits, sleep_and_retry
 
-nones = []
-
 
 def getFirstUrl(ticker):
     '''
@@ -44,6 +42,10 @@ class FileGatherer:
     '''
 
     def __init__(self, tickers):
+        '''
+        Used to create a FileGatherer object.
+        :param tickers: The tickers that the FileGatherer will pull information from.
+        '''
         self.tickers = tickers
         self.data = None
         self.txts = None
@@ -144,8 +146,7 @@ class FileGatherer:
                     dicts.append(d)
                 else:
                     self.nones[soup.find("issuerTradingSymbol").string].append(txt_index)
-                    nones.append(txt_index)
-        print(nones)
+
         return dicts
 
     def getAllUrls(self, ticker):

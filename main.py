@@ -36,8 +36,3 @@ for ticker in tickers:
     txts_df.to_csv(f"data/{ticker}_txts.csv")
     dicts_df.to_csv(f"data/{ticker}_dicts.csv")
     nones_df.to_csv(f"data/{ticker}_nones.csv")
-
-# for i, fs in enumerate(d):
-#     print(f"{i}: {fs}")
-#
-# print(n)
