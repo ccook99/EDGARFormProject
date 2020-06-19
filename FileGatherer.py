@@ -39,6 +39,18 @@ def convert_htm_txt(htms):
 class FileGatherer:
     '''
     Used to gather dictionary versions of Form 4 xml documents on the EDGAR public database.
+
+    For the purposes of reading the code/documentation, here are a few definitions:
+    ticker - The ticker symbol of a publicly traded company used for identification.
+    .htm url - A url that points to a page with a single filing in several formats. These are only useful in
+        obtaining the .txt files they point to. An example can be found here:
+        https://www.sec.gov/Archives/edgar/data/1723026/000124636020001439/0001246360-20-001439-index.htm
+    .txt url - A url that contains the data in XML format. It is these urls that data is pulled from. The .txt url
+        from the above .htm url can be seen here:
+        https://www.sec.gov/Archives/edgar/data/1576942/000124636020001439/0001246360-20-001439.txt
+    filing - A document or collection of documents sent to the SEC from a company in order to comply with
+        current laws.
+    form 4 filing - A filing used to disclose insider trading within a publicly traded company.
     '''
 
     def __init__(self, tickers):
@@ -139,7 +151,7 @@ class FileGatherer:
             if od is not None:  # if the response was what was expected
                 d = xmltodict.parse(od.prettify())
                 dicts.append(d)
-            else:  # if the response was something unexpected, try again
+            else:  # if the response was something unexpected, try one more time
                 od2 = soup.find("ownershipdocument")
                 if od2 is not None:
                     d = xmltodict.parse(od2.prettify())
