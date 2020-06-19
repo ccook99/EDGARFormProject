@@ -5,6 +5,9 @@ class DataStorage:
     Used as an API to access a locally run MongoDB.
     '''
     def __init__(self):
+        '''
+        Used to create a MongoDB API.
+        '''
         self.client = MongoClient()
         self.db = self.client.EDGARProject
         self.collection = self.db.Filings
